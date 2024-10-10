@@ -113,7 +113,8 @@ open class MusicService : MediaLibraryService() {
             .setMediaId(UAMP_BROWSABLE_ROOT)
             .setMediaMetadata(
                 MediaMetadata.Builder()
-                    .setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
+                    .setIsBrowsable(true)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS)
                     .setIsPlayable(false)
                     .build())
             .build()
@@ -142,8 +143,8 @@ open class MusicService : MediaLibraryService() {
             setAudioAttributes(uAmpAudioAttributes, true)
             setHandleAudioBecomingNoisy(true)
             addListener(playerListener)
+            addAnalyticsListener(EventLogger("exoplayer-uamp"))
         }
-        player.addAnalyticsListener(EventLogger(null, "exoplayer-uamp"))
         player
     }
 
@@ -152,8 +153,8 @@ open class MusicService : MediaLibraryService() {
      */
     private val castPlayer: CastPlayer? by lazy {
         try {
-            val castContext = CastContext.getSharedInstance(this)
-            CastPlayer(castContext, CastMediaItemConverter()).apply {
+            val castContext = CastContext.getSharedInstance()
+            CastPlayer(castContext!!, CastMediaItemConverter()).apply {
                 setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
                 addListener(playerListener)
             }
@@ -297,7 +298,7 @@ open class MusicService : MediaLibraryService() {
             Futures.immediateFuture(action())
         } else {
             executorService.submit<T> {
-                conditionVariable.block();
+                conditionVariable.block()
                 action()
             }
         }
